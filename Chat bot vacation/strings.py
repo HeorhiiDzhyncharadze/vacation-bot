@@ -38,6 +38,9 @@ STRINGS = {
             '➡️ *{days} дн = {hours:.0f} год*\n'
             '_(Орієнтовно — уточни у HR)_'
         ),
+        'ask_hu_confirm': '📋 Використати *{hours:.0f} год* для розрахунку або ввести своє число?',
+        'btn_huc_use': '✅ Використати {hours:.0f} год',
+        'btn_huc_change': '✏️ Ввести своє число',
         'ask_total': (
             '📋 *Скільки годин відпустки* ти маєш за рік?\n'
             '_(Ця цифра в трудовому договорі або у HR — у кожного своя)_'
@@ -117,6 +120,9 @@ STRINGS = {
             '➡️ *{days} d = {hours:.0f} h*\n'
             '_(Approximate — confirm with HR)_'
         ),
+        'ask_hu_confirm': '📋 Use *{hours:.0f} h* for the calculation or enter your own number?',
+        'btn_huc_use': '✅ Use {hours:.0f} h',
+        'btn_huc_change': '✏️ Enter my own',
         'ask_total': (
             '📋 How many *vacation hours* do you have per year?\n'
             '_(Check your employment contract or ask HR — it differs for everyone)_'
@@ -196,6 +202,9 @@ STRINGS = {
             '➡️ *{days} nap = {hours:.0f} óra*\n'
             '_(Tájékoztató — kérjük ellenőrizd HR-rel)_'
         ),
+        'ask_hu_confirm': '📋 Használd a *{hours:.0f} óra* értéket a számításhoz, vagy add meg a sajátodat?',
+        'btn_huc_use': '✅ {hours:.0f} óra használata',
+        'btn_huc_change': '✏️ Saját szám megadása',
         'ask_total': (
             '📋 Hány *szabadságórád* van évente?\n'
             '_(Ez a munkaszerződésedben szerepel vagy kérdezd meg a HR-t — mindenkinél más)_'

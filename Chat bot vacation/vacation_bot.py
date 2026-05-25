@@ -26,7 +26,7 @@ from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
-KNOW_HOURS, TOTAL, AGE, CHILDREN, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED = range(11)
+KNOW_HOURS, TOTAL, AGE, CHILDREN, HU_CONFIRM, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED = range(12)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -155,15 +155,37 @@ async def got_children(update: Update, context: ContextTypes.DEFAULT_TYPE):
         t(lang, "calc_hu_result").format(age=age, children=children, days=days, hours=hours),
         parse_mode="Markdown",
     )
-    # Continue flow: ask start month
+    # Ask user to confirm calculated hours or enter their own
     keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
-        InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
+        InlineKeyboardButton(t(lang, "btn_huc_use").format(hours=hours),    callback_data="huc_use"),
+        InlineKeyboardButton(t(lang, "btn_huc_change"),                     callback_data="huc_change"),
     ]])
     await update.message.reply_text(
-        t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
+        t(lang, "ask_hu_confirm").format(hours=hours), parse_mode="Markdown", reply_markup=keyboard
     )
-    return CHANGE_START
+    return HU_CONFIRM
+
+
+async def got_hu_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(context)
+    hours = context.user_data["total"]
+    if q.data == "huc_use":
+        await q.edit_message_text(t(lang, "btn_huc_use").format(hours=hours))
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
+            InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
+        ]])
+        await q.message.reply_text(
+            t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
+        )
+        return CHANGE_START
+    # huc_change: let user enter their own hours
+    context.user_data.pop("total", None)
+    await q.edit_message_text(t(lang, "btn_huc_change"))
+    await q.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
+    return TOTAL
 
 
 async def got_total(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -338,6 +360,7 @@ def main():
             TOTAL:       [MessageHandler(filters.TEXT & ~filters.COMMAND, got_total)],
             AGE:         [MessageHandler(filters.TEXT & ~filters.COMMAND, got_age)],
             CHILDREN:    [MessageHandler(filters.TEXT & ~filters.COMMAND, got_children)],
+            HU_CONFIRM:  [CallbackQueryHandler(got_hu_confirm, pattern="^huc_")],
             CHANGE_START:[CallbackQueryHandler(got_change_start, pattern="^cs_")],
             START_M:     [CallbackQueryHandler(got_start_month, pattern="^sm_")],
             END_YEAR_YN: [CallbackQueryHandler(got_end_year_yn, pattern="^ey_")],
