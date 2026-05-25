@@ -103,6 +103,9 @@ async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return USED
 
     lang = get_lang(context)
+    # Clear stale keys from any previous /calc run in this session
+    for key in ("total", "start_m", "end_m", "opening_balance", "_period_entry", "_age"):
+        context.user_data.pop(key, None)
     keyboard = InlineKeyboardMarkup([[
         InlineKeyboardButton(t(lang, "btn_kh_yes"),  callback_data="kh_yes"),
         InlineKeyboardButton(t(lang, "btn_kh_calc"), callback_data="kh_calc"),
