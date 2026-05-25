@@ -1,14 +1,19 @@
 import pytest
 from calc import build_report, parse_finite, parse_positive, parse_nonneg, SHIFT
 
-
-def test_shift_is_12():
-    assert SHIFT == 12.0
+# Helper: find table rows for a given month name.
+# Table rows start with the month name; headline lines start with ✅ or ⏳.
+def _table_lines(report: str, month: str) -> list[str]:
+    return [l for l in report.split('\n') if l.strip().startswith(month)]
 
 
 # ---------------------------------------------------------------------------
 # parse_positive
 # ---------------------------------------------------------------------------
+
+def test_shift_is_12():
+    assert SHIFT == 12.0
+
 
 def test_parse_positive_valid():
     assert parse_positive("168") == 168.0
@@ -95,32 +100,32 @@ def test_parse_finite_rejects_inf():
 def test_reference_case_may():
     # total=168h, used=6d(72h), Jan-Oct; May n=5: accrued=84h, avail=12h=1.0d
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
-    lines = [l for l in report.split('\n') if 'Травень' in l]
-    assert lines, "May line missing"
+    lines = _table_lines(report, 'Травень')
+    assert lines, "May table row missing"
     assert '1.0' in lines[0], f"Expected 1.0 in May line, got: {lines[0]}"
 
 
 def test_reference_case_june():
     # June n=6: accrued=100.8h, avail=28.8h=2.4d
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
-    lines = [l for l in report.split('\n') if 'Червень' in l]
-    assert lines, "June line missing"
+    lines = _table_lines(report, 'Червень')
+    assert lines, "June table row missing"
     assert '2.4' in lines[0], f"Expected 2.4 in June line, got: {lines[0]}"
 
 
 def test_reference_case_october():
     # October n=10: accrued=168h, avail=96h=8.0d
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
-    lines = [l for l in report.split('\n') if 'Жовтень' in l]
-    assert lines, "October line missing"
+    lines = _table_lines(report, 'Жовтень')
+    assert lines, "October table row missing"
     assert '8.0' in lines[0], f"Expected 8.0 in October line, got: {lines[0]}"
 
 
 def test_early_months_show_deficit():
     # January: accrued=16.8h, used=72h → avail = 16.8-72 = -55.2h = -4.6d (no clamp)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
-    lines = [l for l in report.split('\n') if 'Січень' in l]
-    assert lines, "January line missing"
+    lines = _table_lines(report, 'Січень')
+    assert lines, "January table row missing"
     line_clean = lines[0].replace(' ←', '').strip()
     parts = line_clean.split()
     avail = float(parts[-1])
@@ -143,7 +148,7 @@ def test_cross_year_wraps_months():
 def test_zero_used():
     report = build_report(total=120, used_days=0, start_m=1, end_m=10, lang='uk')
     # First month: accrued=12h=1.0d, avail=1.0d
-    lines = [l for l in report.split('\n') if 'Січень' in l]
+    lines = _table_lines(report, 'Січень')
     assert lines
     line_clean = lines[0].replace(' ←', '').strip()
     parts = line_clean.split()
@@ -176,8 +181,8 @@ def test_opening_balance_positive_shifts_available():
     # opening_balance=+36h (+3d): May avail = 36 + 84 - 72 = 48h = 4.0d
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk',
                           opening_balance_h=36.0)
-    lines = [l for l in report.split('\n') if 'Травень' in l]
-    assert lines, "May line missing"
+    lines = _table_lines(report, 'Травень')
+    assert lines, "May table row missing"
     parts = lines[0].replace(' ←', '').strip().split()
     assert float(parts[-1]) == pytest.approx(4.0), f"Expected 4.0, got: {parts[-1]}"
 
@@ -186,8 +191,8 @@ def test_opening_balance_negative_shows_debt():
     # opening_balance=-24h (-2d): January avail = -24 + 16.8 - 72 = -79.2h = -6.6d
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk',
                           opening_balance_h=-24.0)
-    lines = [l for l in report.split('\n') if 'Січень' in l]
-    assert lines, "January line missing"
+    lines = _table_lines(report, 'Січень')
+    assert lines, "January table row missing"
     parts = lines[0].replace(' ←', '').strip().split()
     avail = float(parts[-1])
     assert avail < -6.0, f"Expected debt < -6.0 in January, got: {avail}"
@@ -218,3 +223,37 @@ def test_opening_balance_remaining_includes_balance():
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='en',
                           opening_balance_h=36.0)
     assert '11.0' in report
+
+
+# ---------------------------------------------------------------------------
+# build_report — headline (big answer for non-tech users)
+# ---------------------------------------------------------------------------
+
+def test_report_headline_shown_full_year_contract():
+    # Jan-Dec covers all 12 months → today always in contract range
+    report = build_report(total=120, used_days=0, start_m=1, end_m=12, lang='en')
+    assert 'Right now' in report  # now_available_pos
+
+
+def test_report_headline_negative_full_year_overuse():
+    # 100 days used (1200h) on 120h contract → deep deficit every month → ⏳ headline
+    report = build_report(total=120, used_days=100, start_m=1, end_m=12, lang='en')
+    assert '⏳' in report  # now_available_neg
+
+
+def test_report_headline_appears_before_table():
+    # Headline must come before the ``` code block
+    report = build_report(total=168, used_days=0, start_m=1, end_m=12, lang='en')
+    lines = report.split('\n')
+    code_block_start = next(i for i, l in enumerate(lines) if l.strip() == '```')
+    for i, line in enumerate(lines):
+        if 'Right now' in line or '⏳' in line:
+            assert i < code_block_start, "Headline must appear before the table"
+            break
+
+
+def test_report_headline_all_languages():
+    # Headline present in all 3 languages for a full-year contract
+    for lang, keyword in [('uk', 'Зараз'), ('en', 'Right now'), ('hu', 'Most')]:
+        report = build_report(total=120, used_days=0, start_m=1, end_m=12, lang=lang)
+        assert keyword in report, f"Headline missing for lang={lang}"

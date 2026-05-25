@@ -45,10 +45,10 @@ def build_report(
     total_d = total / SHIFT
     current_month = datetime.date.today().month
 
-    # Build table rows first so month-name filtering in callers/tests hits
-    # the table rows rather than the contract summary line (which also
-    # contains start/end month names).
+    # Build table rows; simultaneously capture current-month available days for headline.
     table_rows = []
+    current_avail_d = None
+    current_month_name = None
     for n in range(1, duration + 1):
         cal = (start_m - 1 + (n - 1)) % 12 + 1
         accrued_h = rate * n
@@ -56,11 +56,23 @@ def build_report(
         accrued_d = accrued_h / SHIFT
         avail_d = avail_h / SHIFT
         arrow = " ←" if cal == current_month else ""
+        if cal == current_month:
+            current_avail_d = avail_d
+            current_month_name = months[cal - 1]
         table_rows.append(f"{months[cal - 1]:<11}{accrued_d:>8.1f}{avail_d:>8.1f}{arrow}")
 
-    lines = [
-        s['report_header'],
-        "",
+    # Start with header, then optional headline (big answer for non-tech users).
+    lines = [s['report_header'], ""]
+    if current_avail_d is not None:
+        if current_avail_d >= 0:
+            lines.append(s['now_available_pos'].format(
+                month=current_month_name, days=current_avail_d))
+        else:
+            lines.append(s['now_available_neg'].format(
+                month=current_month_name, days=abs(current_avail_d)))
+        lines.append("")
+
+    lines += [
         "```",
         f"{s['col_month']:<11}{s['col_accrued']:>8}{s['col_avail']:>8}",
         "─" * 27,
