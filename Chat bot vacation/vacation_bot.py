@@ -26,7 +26,7 @@ from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
-KNOW_HOURS, TOTAL, AGE, CHILDREN, HU_CONFIRM, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED = range(12)
+KNOW_HOURS, TOTAL, AGE, CHILDREN, HU_CONFIRM, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED, HOURS_TYPE = range(13)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -119,8 +119,12 @@ async def got_know_hours(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     if q.data == "kh_yes":
         await q.edit_message_text(t(lang, "btn_kh_yes"))
-        await q.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
-        return TOTAL
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
+            InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
+        ]])
+        await q.message.reply_text(t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard)
+        return CHANGE_START
     # kh_calc
     await q.edit_message_text(t(lang, "btn_kh_calc"))
     await q.message.reply_text(t(lang, "ask_age"), parse_mode="Markdown")
@@ -181,9 +185,64 @@ async def got_hu_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
             t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
         )
         return CHANGE_START
-    # huc_change: let user enter their own hours
+    # huc_change: let user enter their own hours (months already collected above)
     context.user_data.pop("total", None)
     await q.edit_message_text(t(lang, "btn_huc_change"))
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
+        InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
+    ]])
+    await q.message.reply_text(t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard)
+    return CHANGE_START
+
+
+async def _after_end_month(message, context, lang: str) -> int:
+    """Decide next state after end_m is stored. Returns the next state constant."""
+    start_m  = context.user_data["start_m"]
+    end_m    = context.user_data["end_m"]
+    duration = (end_m - start_m) % 12 + 1
+    months   = MONTHS[lang]
+
+    if "total" in context.user_data:
+        # HU path: hours already set → go straight to balance question
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
+            InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
+        ]])
+        await message.reply_text(t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard)
+        return BALANCE_YN
+
+    if duration == 12:
+        # Full-year contract: period hours = annual hours, no conversion needed
+        await message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
+        return TOTAL
+
+    # Partial-year: ask whether user knows period hours or annual hours
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            t(lang, "btn_ht_period").format(
+                start=months[start_m - 1], end=months[end_m - 1], dur=duration),
+            callback_data="ht_period",
+        ),
+        InlineKeyboardButton(t(lang, "btn_ht_annual"), callback_data="ht_annual"),
+    ]])
+    await message.reply_text(
+        t(lang, "ask_hours_type").format(
+            start=months[start_m - 1], end=months[end_m - 1], dur=duration),
+        parse_mode="Markdown", reply_markup=keyboard,
+    )
+    return HOURS_TYPE
+
+
+async def got_hours_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(context)
+    if q.data == "ht_period":
+        context.user_data["_period_entry"] = True
+        await q.edit_message_text(t(lang, "btn_ht_period_chosen"))
+    else:
+        await q.edit_message_text(t(lang, "btn_ht_annual"))
     await q.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
     return TOTAL
 
@@ -191,18 +250,22 @@ async def got_hu_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def got_total(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     try:
-        context.user_data["total"] = parse_positive(update.message.text)
+        hours = parse_positive(update.message.text)
     except ValueError:
         await update.message.reply_text(t(lang, "err_positive"))
         return TOTAL
+    if context.user_data.pop("_period_entry", False):
+        start_m  = context.user_data["start_m"]
+        end_m    = context.user_data["end_m"]
+        duration = (end_m - start_m) % 12 + 1
+        hours    = round(hours * 12 / duration, 2)
+    context.user_data["total"] = hours
     keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
-        InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
+        InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
+        InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
     ]])
-    await update.message.reply_text(
-        t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
-    )
-    return CHANGE_START
+    await update.message.reply_text(t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard)
+    return BALANCE_YN
 
 
 async def got_change_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -249,14 +312,7 @@ async def got_end_year_yn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if q.data == "ey_yes":
         context.user_data["end_m"] = 12
         await q.edit_message_text(MONTHS[lang][11])  # Грудень / December / December
-        keyboard = InlineKeyboardMarkup([[
-            InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
-            InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
-        ]])
-        await q.message.reply_text(
-            t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard
-        )
-        return BALANCE_YN
+        return await _after_end_month(q.message, context, lang)
     # ey_no: dismiss buttons, show month picker
     await q.edit_message_text(t(lang, "ask_end_year_yn"), parse_mode="Markdown")
     await q.message.reply_text(
@@ -271,14 +327,7 @@ async def got_end_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     context.user_data["end_m"] = int(q.data.replace("em_", ""))
     await q.edit_message_text(MONTHS[lang][context.user_data["end_m"] - 1])
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
-        InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
-    ]])
-    await q.message.reply_text(
-        t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard
-    )
-    return BALANCE_YN
+    return await _after_end_month(q.message, context, lang)
 
 
 async def got_balance_yn(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -389,6 +438,7 @@ def main():
             START_M:     [CallbackQueryHandler(got_start_month, pattern="^sm_")],
             END_YEAR_YN: [CallbackQueryHandler(got_end_year_yn, pattern="^ey_")],
             END_M:       [CallbackQueryHandler(got_end_month, pattern="^em_")],
+            HOURS_TYPE:  [CallbackQueryHandler(got_hours_type, pattern="^ht_")],
             BALANCE_YN:  [CallbackQueryHandler(got_balance_yn, pattern="^bal_")],
             BALANCE_VAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_balance_val)],
             USED:        [MessageHandler(filters.TEXT & ~filters.COMMAND, got_used)],

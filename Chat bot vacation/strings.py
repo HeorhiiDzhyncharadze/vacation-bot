@@ -41,6 +41,10 @@ STRINGS = {
         'ask_hu_confirm': '📋 Використати *{hours:.0f} год* для розрахунку або ввести своє число?',
         'btn_huc_use': '✅ Використати {hours:.0f} год',
         'btn_huc_change': '✏️ Ввести своє число',
+        'ask_hours_type': '📋 Твій контракт *{start}–{end}* ({dur} міс.). Скільки годин відпустки маєш?',
+        'btn_ht_period': '📅 За контракт ({start}–{end}, {dur} міс.)',
+        'btn_ht_annual': '📆 За повний рік (12 міс.)',
+        'btn_ht_period_chosen': '📅 Введу за контракт',
         'ask_total': (
             '📋 *Скільки годин відпустки* ти маєш за *повний рік* (12 місяців)?\n'
             '_(Ця цифра в трудовому договорі або у HR — у кожного своя)_'
@@ -123,6 +127,10 @@ STRINGS = {
         'ask_hu_confirm': '📋 Use *{hours:.0f} h* for the calculation or enter your own number?',
         'btn_huc_use': '✅ Use {hours:.0f} h',
         'btn_huc_change': '✏️ Enter my own',
+        'ask_hours_type': '📋 Your contract: *{start}–{end}* ({dur} months). How many vacation hours do you have?',
+        'btn_ht_period': '📅 For this period ({start}–{end}, {dur} mo)',
+        'btn_ht_annual': '📆 Full year (12 months)',
+        'btn_ht_period_chosen': '📅 Entering for contract period',
         'ask_total': (
             '📋 How many *vacation hours* do you have per *full year* (12 months)?\n'
             '_(Check your employment contract or ask HR — it differs for everyone)_'
@@ -205,6 +213,10 @@ STRINGS = {
         'ask_hu_confirm': '📋 Használd a *{hours:.0f} óra* értéket a számításhoz, vagy add meg a sajátodat?',
         'btn_huc_use': '✅ {hours:.0f} óra használata',
         'btn_huc_change': '✏️ Saját szám megadása',
+        'ask_hours_type': '📋 A szerződésed: *{start}–{end}* ({dur} hó). Hány szabadságórád van?',
+        'btn_ht_period': '📅 Erre az időszakra ({start}–{end}, {dur} hó)',
+        'btn_ht_annual': '📆 Teljes évre (12 hónap)',
+        'btn_ht_period_chosen': '📅 Időszakra adom meg',
         'ask_total': (
             '📋 Hány *szabadságórád* van *teljes évre* (12 hónapra)?\n'
             '_(Ez a munkaszerződésedben szerepel vagy kérdezd meg a HR-t — mindenkinél más)_'
