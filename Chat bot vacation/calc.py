@@ -3,6 +3,7 @@ import math
 from strings import STRINGS, MONTHS
 
 SHIFT = 12.0
+WORKDAY = 8.0    # standard working hours per day (Hungarian Labour Code)
 
 
 def parse_positive(text: str) -> float:
@@ -62,8 +63,12 @@ def vacation_days_hu(age: int, num_children: int) -> int:
 
 
 def vacation_hours_hu(age: int, num_children: int) -> float:
-    """Total vacation hours for 12-hour shift workers (days × SHIFT)."""
-    return vacation_days_hu(age, num_children) * SHIFT
+    """Annual vacation hours per Hungarian Labour Code (days × WORKDAY).
+
+    Law defines vacation in standard 8-hour working days.
+    Result is the full-year entitlement in hours.
+    """
+    return vacation_days_hu(age, num_children) * WORKDAY
 
 
 def build_report(
@@ -78,8 +83,8 @@ def build_report(
     months = MONTHS[lang]
     used_h = used_days * SHIFT
     duration = (end_m - start_m) % 12 + 1
-    rate = total / duration
-    rem_h = opening_balance_h + total - used_h
+    rate = total / 12                                    # monthly accrual at annual rate
+    rem_h = opening_balance_h + rate * duration - used_h  # accrued over period minus used
     rem_d = rem_h / SHIFT
     total_d = total / SHIFT
     current_month = datetime.date.today().month

@@ -42,7 +42,7 @@ STRINGS = {
         'btn_huc_use': '✅ Використати {hours:.0f} год',
         'btn_huc_change': '✏️ Ввести своє число',
         'ask_total': (
-            '📋 *Скільки годин відпустки* ти маєш за рік?\n'
+            '📋 *Скільки годин відпустки* ти маєш за *повний рік* (12 місяців)?\n'
             '_(Ця цифра в трудовому договорі або у HR — у кожного своя)_'
         ),
         'ask_start_default': (
@@ -124,7 +124,7 @@ STRINGS = {
         'btn_huc_use': '✅ Use {hours:.0f} h',
         'btn_huc_change': '✏️ Enter my own',
         'ask_total': (
-            '📋 How many *vacation hours* do you have per year?\n'
+            '📋 How many *vacation hours* do you have per *full year* (12 months)?\n'
             '_(Check your employment contract or ask HR — it differs for everyone)_'
         ),
         'ask_start_default': (
@@ -206,7 +206,7 @@ STRINGS = {
         'btn_huc_use': '✅ {hours:.0f} óra használata',
         'btn_huc_change': '✏️ Saját szám megadása',
         'ask_total': (
-            '📋 Hány *szabadságórád* van évente?\n'
+            '📋 Hány *szabadságórád* van *teljes évre* (12 hónapra)?\n'
             '_(Ez a munkaszerződésedben szerepel vagy kérdezd meg a HR-t — mindenkinél más)_'
         ),
         'ask_start_default': (

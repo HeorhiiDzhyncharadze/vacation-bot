@@ -98,31 +98,34 @@ def test_parse_finite_rejects_inf():
 # ---------------------------------------------------------------------------
 
 def test_reference_case_may():
-    # total=168h, used=6d(72h), Jan-Oct; May n=5: accrued=84h, avail=12h=1.0d
+    # Annual formula: total=168h/year, rate=14h/mo, used=6d(72h), Jan-Oct
+    # May n=5: accrued=70h, avail=70-72=-2h=-0.2d (still a deficit)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
     lines = _table_lines(report, 'Травень')
     assert lines, "May table row missing"
-    assert '1.0' in lines[0], f"Expected 1.0 in May line, got: {lines[0]}"
+    parts = lines[0].replace(' ←', '').strip().split()
+    avail = float(parts[-1])
+    assert avail < 0, f"Expected May to still be in deficit (annual formula), got: {avail}"
 
 
 def test_reference_case_june():
-    # June n=6: accrued=100.8h, avail=28.8h=2.4d
+    # June n=6: accrued=84h, avail=84-72=12h=1.0d (annual formula: rate=14h/mo)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
     lines = _table_lines(report, 'Червень')
     assert lines, "June table row missing"
-    assert '2.4' in lines[0], f"Expected 2.4 in June line, got: {lines[0]}"
+    assert '1.0' in lines[0], f"Expected 1.0 in June line, got: {lines[0]}"
 
 
 def test_reference_case_october():
-    # October n=10: accrued=168h, avail=96h=8.0d
+    # October n=10: accrued=140h, avail=140-72=68h=5.67d (annual formula: rate=14h/mo)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
     lines = _table_lines(report, 'Жовтень')
     assert lines, "October table row missing"
-    assert '8.0' in lines[0], f"Expected 8.0 in October line, got: {lines[0]}"
+    assert '5.7' in lines[0], f"Expected 5.7 in October line, got: {lines[0]}"
 
 
 def test_early_months_show_deficit():
-    # January: accrued=16.8h, used=72h → avail = 16.8-72 = -55.2h = -4.6d (no clamp)
+    # January: accrued=14h, used=72h → avail = 14-72 = -58h = -4.83d (no clamp)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk')
     lines = _table_lines(report, 'Січень')
     assert lines, "January table row missing"
@@ -146,8 +149,8 @@ def test_cross_year_wraps_months():
 
 
 def test_zero_used():
-    report = build_report(total=120, used_days=0, start_m=1, end_m=10, lang='uk')
-    # First month: accrued=12h=1.0d, avail=1.0d
+    report = build_report(total=144, used_days=0, start_m=1, end_m=10, lang='uk')
+    # total=144 → rate=12h/mo; First month: accrued=12h=1.0d, avail=1.0d
     lines = _table_lines(report, 'Січень')
     assert lines
     line_clean = lines[0].replace(' ←', '').strip()
@@ -178,17 +181,17 @@ def test_hungarian_month_names():
 # ---------------------------------------------------------------------------
 
 def test_opening_balance_positive_shifts_available():
-    # opening_balance=+36h (+3d): May avail = 36 + 84 - 72 = 48h = 4.0d
+    # opening_balance=+36h (+3d): May avail = 36 + 70 - 72 = 34h = 2.83d (rate=14h/mo)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk',
                           opening_balance_h=36.0)
     lines = _table_lines(report, 'Травень')
     assert lines, "May table row missing"
     parts = lines[0].replace(' ←', '').strip().split()
-    assert float(parts[-1]) == pytest.approx(4.0), f"Expected 4.0, got: {parts[-1]}"
+    assert float(parts[-1]) == pytest.approx(34 / 12, abs=0.1), f"Expected ~2.8, got: {parts[-1]}"
 
 
 def test_opening_balance_negative_shows_debt():
-    # opening_balance=-24h (-2d): January avail = -24 + 16.8 - 72 = -79.2h = -6.6d
+    # opening_balance=-24h (-2d): January avail = -24 + 14 - 72 = -82h = -6.83d (rate=14h/mo)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='uk',
                           opening_balance_h=-24.0)
     lines = _table_lines(report, 'Січень')
@@ -219,10 +222,10 @@ def test_opening_balance_line_hidden_when_zero():
 
 
 def test_opening_balance_remaining_includes_balance():
-    # With +36h balance: remaining = 36 + 168 - 72 = 132h = 11.0d
+    # With +36h balance: remaining = 36 + 14×10 - 72 = 104h = 8.67d → '8.7' (rate=14h/mo)
     report = build_report(total=168, used_days=6, start_m=1, end_m=10, lang='en',
                           opening_balance_h=36.0)
-    assert '11.0' in report
+    assert '8.7' in report
 
 
 # ---------------------------------------------------------------------------
@@ -300,7 +303,7 @@ def test_hu_age_and_children():
 
 
 def test_hu_hours_base():
-    assert vacation_hours_hu(20, 0) == 240.0  # 20 × 12
+    assert vacation_hours_hu(20, 0) == 160.0  # 20 × 8
 
 
 # ---------------------------------------------------------------------------
