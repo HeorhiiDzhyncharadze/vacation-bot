@@ -171,7 +171,7 @@ tests/test_db.py    (12 tests)
 
 Built as a portfolio project while learning Python and transitioning to **data analytics / analytics engineering**.
 
-The bot solves a real problem: calculating vacation availability on fixed-term contracts is error-prone when done manually. This automates it for a small team of shift workers in Ukraine and Hungary.
+The bot solves a real problem: calculating vacation availability on fixed-term contracts is error-prone when done manually. This automates it for a small team of shift workers in Hungary.
 
 **Tech stack:** Python 3.12 · python-telegram-bot ≥21 · aiosqlite · SQLite · pytest · pytest-asyncio · Railway
 
