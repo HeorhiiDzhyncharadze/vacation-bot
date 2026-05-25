@@ -14,7 +14,7 @@ from telegram.ext import (
 
 import db
 from calc import build_report, parse_nonneg, parse_positive
-from strings import MONTHS, STRINGS
+from strings import MONTHS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
@@ -58,6 +58,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
+    # Block language change while a /calc conversation is active
+    if context.user_data.get("_in_calc"):
+        await q.answer("Finish /calc first, then change language. / Спочатку завершіть /calc.")
+        return
     await q.answer()
     lang = q.data.replace("lang_", "")
     context.user_data["lang"] = lang
@@ -68,6 +72,7 @@ async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["_in_calc"] = True
     user_id = update.effective_user.id
     saved = await db.get_user(user_id)
     if saved:
@@ -156,10 +161,14 @@ async def got_used(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(t(lang, "err_nonneg"))
         return USED
     d = context.user_data
+    if not all(k in d for k in ("total", "start_m", "end_m")):
+        await update.message.reply_text(t(lang, "cancelled"))
+        return ConversationHandler.END
     await db.save_user(update.effective_user.id, d["total"], d["start_m"], d["end_m"], lang)
     report = build_report(d["total"], used_days, d["start_m"], d["end_m"], lang)
     await update.message.reply_text(report, parse_mode="Markdown")
     await update.message.reply_text(t(lang, "calc_again"))
+    context.user_data.pop("_in_calc", None)
     return ConversationHandler.END
 
 
@@ -175,6 +184,7 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
+    context.user_data.pop("_in_calc", None)
     await update.message.reply_text(t(lang, "cancelled"))
     return ConversationHandler.END
 
