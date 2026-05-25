@@ -1,7 +1,7 @@
 import logging
 import os
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
@@ -348,6 +348,30 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def _on_startup(app: Application):
     await db.init_db()
+
+    cmds = {
+        'uk': [
+            BotCommand("start",  "🌐 Вибір мови"),
+            BotCommand("calc",   "🔢 Розрахувати відпустку"),
+            BotCommand("reset",  "🗑️ Скинути дані"),
+            BotCommand("cancel", "⛔ Скасувати"),
+        ],
+        'en': [
+            BotCommand("start",  "🌐 Choose language"),
+            BotCommand("calc",   "🔢 Calculate vacation"),
+            BotCommand("reset",  "🗑️ Reset data"),
+            BotCommand("cancel", "⛔ Cancel"),
+        ],
+        'hu': [
+            BotCommand("start",  "🌐 Nyelv választás"),
+            BotCommand("calc",   "🔢 Szabadság kalkuláció"),
+            BotCommand("reset",  "🗑️ Adatok törlése"),
+            BotCommand("cancel", "⛔ Megszakítás"),
+        ],
+    }
+    for lang_code, commands in cmds.items():
+        await app.bot.set_my_commands(commands, language_code=lang_code)
+    await app.bot.set_my_commands(cmds['en'])  # default fallback
 
 
 def main():
