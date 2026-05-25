@@ -13,14 +13,21 @@ from telegram.ext import (
 )
 
 import db
-from calc import build_report, parse_nonneg, parse_positive
+from calc import build_report, parse_finite, parse_nonneg, parse_positive
 from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
-TOTAL, CHANGE_START, START_M, END_M, USED = range(5)
+TOTAL, CHANGE_START, START_M, END_M, BALANCE_YN, BALANCE_VAL, USED = range(7)
 
 logging.basicConfig(level=logging.INFO)
+
+_LANG_KEYBOARD = InlineKeyboardMarkup([[
+    InlineKeyboardButton("🇺🇦 Українська", callback_data="lang_uk"),
+    InlineKeyboardButton("🇬🇧 English",    callback_data="lang_en"),
+    InlineKeyboardButton("🇭🇺 Magyar",     callback_data="lang_hu"),
+]])
+_LANG_PROMPT = "🇺🇦 Оберіть мову / 🇬🇧 Choose language / 🇭🇺 Válasszon nyelvet:"
 
 
 def t(lang: str, key: str) -> str:
@@ -45,15 +52,7 @@ def month_keyboard(prefix: str, lang: str) -> InlineKeyboardMarkup:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton("🇺🇦 Українська", callback_data="lang_uk"),
-        InlineKeyboardButton("🇬🇧 English", callback_data="lang_en"),
-        InlineKeyboardButton("🇭🇺 Magyar", callback_data="lang_hu"),
-    ]])
-    await update.message.reply_text(
-        "🇺🇦 Оберіть мову / 🇬🇧 Choose language / 🇭🇺 Válasszon nyelvet:",
-        reply_markup=keyboard,
-    )
+    await update.message.reply_text(_LANG_PROMPT, reply_markup=_LANG_KEYBOARD)
 
 
 async def set_lang(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -77,17 +76,20 @@ async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE):
     saved = await db.get_user(user_id)
     if saved:
         lang = saved["lang"]
+        ob = saved.get("opening_balance", 0.0)
         context.user_data.update(
             lang=lang,
             total=saved["total"],
             start_m=saved["start_m"],
             end_m=saved["end_m"],
+            opening_balance=ob,
         )
         months = MONTHS[lang]
         prompt = t(lang, "saved_prompt").format(
             total=saved["total"],
             start=months[saved["start_m"] - 1],
             end=months[saved["end_m"] - 1],
+            bal=ob,
         )
         await update.message.reply_text(prompt, parse_mode="Markdown")
         return USED
@@ -149,7 +151,40 @@ async def got_end_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     context.user_data["end_m"] = int(q.data.replace("em_", ""))
     await q.edit_message_text(MONTHS[lang][context.user_data["end_m"] - 1])
-    await q.message.reply_text(t(lang, "ask_used"), parse_mode="Markdown")
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
+        InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
+    ]])
+    await q.message.reply_text(
+        t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard
+    )
+    return BALANCE_YN
+
+
+async def got_balance_yn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(context)
+    if q.data == "bal_no":
+        context.user_data["opening_balance"] = 0.0
+        await q.edit_message_text(t(lang, "btn_bal_no"))
+        await q.message.reply_text(t(lang, "ask_used"), parse_mode="Markdown")
+        return USED
+    # bal_yes
+    await q.edit_message_text(t(lang, "btn_bal_yes"))
+    await q.message.reply_text(t(lang, "ask_balance_val"), parse_mode="Markdown")
+    return BALANCE_VAL
+
+
+async def got_balance_val(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(context)
+    try:
+        val = parse_finite(update.message.text)
+    except (ValueError, TypeError):
+        await update.message.reply_text(t(lang, "err_balance"))
+        return BALANCE_VAL
+    context.user_data["opening_balance"] = val
+    await update.message.reply_text(t(lang, "ask_used"), parse_mode="Markdown")
     return USED
 
 
@@ -164,8 +199,9 @@ async def got_used(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not all(k in d for k in ("total", "start_m", "end_m")):
         await update.message.reply_text(t(lang, "cancelled"))
         return ConversationHandler.END
-    await db.save_user(update.effective_user.id, d["total"], d["start_m"], d["end_m"], lang)
-    report = build_report(d["total"], used_days, d["start_m"], d["end_m"], lang)
+    ob = d.get("opening_balance", 0.0)
+    await db.save_user(update.effective_user.id, d["total"], d["start_m"], d["end_m"], lang, ob)
+    report = build_report(d["total"], used_days, d["start_m"], d["end_m"], lang, opening_balance_h=ob)
     await update.message.reply_text(report, parse_mode="Markdown")
     await update.message.reply_text(t(lang, "calc_again"))
     context.user_data.pop("_in_calc", None)
@@ -186,6 +222,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     context.user_data.pop("_in_calc", None)
     await update.message.reply_text(t(lang, "cancelled"))
+    await update.message.reply_text(_LANG_PROMPT, reply_markup=_LANG_KEYBOARD)
     return ConversationHandler.END
 
 
@@ -199,11 +236,13 @@ def main():
     conv = ConversationHandler(
         entry_points=[CommandHandler("calc", calc)],
         states={
-            TOTAL:        [MessageHandler(filters.TEXT & ~filters.COMMAND, got_total)],
-            CHANGE_START: [CallbackQueryHandler(got_change_start, pattern="^cs_")],
-            START_M:      [CallbackQueryHandler(got_start_month, pattern="^sm_")],
-            END_M:        [CallbackQueryHandler(got_end_month, pattern="^em_")],
-            USED:         [MessageHandler(filters.TEXT & ~filters.COMMAND, got_used)],
+            TOTAL:       [MessageHandler(filters.TEXT & ~filters.COMMAND, got_total)],
+            CHANGE_START:[CallbackQueryHandler(got_change_start, pattern="^cs_")],
+            START_M:     [CallbackQueryHandler(got_start_month, pattern="^sm_")],
+            END_M:       [CallbackQueryHandler(got_end_month, pattern="^em_")],
+            BALANCE_YN:  [CallbackQueryHandler(got_balance_yn, pattern="^bal_")],
+            BALANCE_VAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_balance_val)],
+            USED:        [MessageHandler(filters.TEXT & ~filters.COMMAND, got_used)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )

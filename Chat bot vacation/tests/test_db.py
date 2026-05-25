@@ -75,3 +75,42 @@ async def test_multiple_users_isolated():
     u2 = await db.get_user(2)
     assert u1["total"] == 168.0
     assert u2["total"] == 240.0
+
+
+# ---------------------------------------------------------------------------
+# opening_balance
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_save_and_get_opening_balance():
+    await db.init_db()
+    await db.save_user(123, 168.0, 1, 10, 'uk', opening_balance=36.0)
+    user = await db.get_user(123)
+    assert user["opening_balance"] == pytest.approx(36.0)
+
+
+@pytest.mark.asyncio
+async def test_save_negative_opening_balance():
+    await db.init_db()
+    await db.save_user(123, 168.0, 1, 10, 'uk', opening_balance=-24.0)
+    user = await db.get_user(123)
+    assert user["opening_balance"] == pytest.approx(-24.0)
+
+
+@pytest.mark.asyncio
+async def test_default_opening_balance_is_zero():
+    await db.init_db()
+    await db.save_user(123, 168.0, 1, 10, 'uk')
+    user = await db.get_user(123)
+    assert user["opening_balance"] == pytest.approx(0.0)
+
+
+@pytest.mark.asyncio
+async def test_init_db_idempotent():
+    # Calling init_db twice should not raise (migration try/except handles duplicate column)
+    await db.init_db()
+    await db.init_db()
+    # Still works normally
+    await db.save_user(1, 100.0, 1, 12, 'en', opening_balance=10.0)
+    user = await db.get_user(1)
+    assert user["opening_balance"] == pytest.approx(10.0)

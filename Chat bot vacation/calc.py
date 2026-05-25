@@ -19,13 +19,28 @@ def parse_nonneg(text: str) -> float:
     return val
 
 
-def build_report(total: float, used_days: float, start_m: int, end_m: int, lang: str) -> str:
+def parse_finite(text: str) -> float:
+    """Accept any finite number including negatives. Used for opening balance."""
+    val = float(text.replace(",", ".").strip())
+    if not math.isfinite(val):
+        raise ValueError
+    return val
+
+
+def build_report(
+    total: float,
+    used_days: float,
+    start_m: int,
+    end_m: int,
+    lang: str,
+    opening_balance_h: float = 0.0,
+) -> str:
     s = STRINGS[lang]
     months = MONTHS[lang]
     used_h = used_days * SHIFT
     duration = (end_m - start_m) % 12 + 1
     rate = total / duration
-    rem_h = max(0.0, total - used_h)
+    rem_h = opening_balance_h + total - used_h
     rem_d = rem_h / SHIFT
     total_d = total / SHIFT
     current_month = datetime.date.today().month
@@ -37,7 +52,7 @@ def build_report(total: float, used_days: float, start_m: int, end_m: int, lang:
     for n in range(1, duration + 1):
         cal = (start_m - 1 + (n - 1)) % 12 + 1
         accrued_h = rate * n
-        avail_h = max(0.0, accrued_h - used_h)
+        avail_h = opening_balance_h + accrued_h - used_h
         accrued_d = accrued_h / SHIFT
         avail_d = avail_h / SHIFT
         arrow = " ←" if cal == current_month else ""
@@ -54,6 +69,9 @@ def build_report(total: float, used_days: float, start_m: int, end_m: int, lang:
     lines.append("```")
     lines.append("")
     lines.append(s['contract_line'].format(start=months[start_m - 1], end=months[end_m - 1], dur=duration))
+    if opening_balance_h != 0.0:
+        bal_d = opening_balance_h / SHIFT
+        lines.append(s['report_balance_line'].format(bal=opening_balance_h, bal_d=bal_d))
     lines.append(s['total_line'].format(total_h=total, total_d=total_d, rem_d=rem_d))
     lines.append("")
     lines.append(s['disclaimer'])
