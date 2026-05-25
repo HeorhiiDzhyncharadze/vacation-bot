@@ -27,6 +27,11 @@ def test_parse_positive_rejects_text():
         parse_positive("abc")
 
 
+def test_parse_positive_rejects_nan():
+    with pytest.raises(ValueError):
+        parse_positive("nan")
+
+
 def test_parse_nonneg_zero_ok():
     assert parse_nonneg("0") == 0.0
 
@@ -38,6 +43,11 @@ def test_parse_nonneg_positive_ok():
 def test_parse_nonneg_rejects_negative():
     with pytest.raises(ValueError):
         parse_nonneg("-1")
+
+
+def test_parse_nonneg_rejects_inf():
+    with pytest.raises(ValueError):
+        parse_nonneg("inf")
 
 
 def test_reference_case_may():

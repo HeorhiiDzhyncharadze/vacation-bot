@@ -1,4 +1,5 @@
 import datetime
+import math
 from strings import STRINGS, MONTHS
 
 SHIFT = 12.0
@@ -6,14 +7,14 @@ SHIFT = 12.0
 
 def parse_positive(text: str) -> float:
     val = float(text.replace(",", ".").strip())
-    if val <= 0:
+    if not math.isfinite(val) or val <= 0:
         raise ValueError
     return val
 
 
 def parse_nonneg(text: str) -> float:
     val = float(text.replace(",", ".").strip())
-    if val < 0:
+    if not math.isfinite(val) or val < 0:
         raise ValueError
     return val
 
