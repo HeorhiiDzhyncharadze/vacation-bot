@@ -45,6 +45,7 @@ STRINGS = {
         'btn_ht_period': '📅 За контракт ({start}–{end}, {dur} міс.)',
         'btn_ht_annual': '📆 За повний рік (12 міс.)',
         'btn_ht_period_chosen': '📅 Введу за контракт',
+        'ask_total_period': '📋 Скільки *годин відпустки* маєш за цей контракт (*{start}–{end}*, {dur} міс.)?',
         'ask_total': (
             '📋 *Скільки годин відпустки* ти маєш за *повний рік* (12 місяців)?\n'
             '_(Ця цифра в трудовому договорі або у HR — у кожного своя)_'
@@ -131,6 +132,7 @@ STRINGS = {
         'btn_ht_period': '📅 For this period ({start}–{end}, {dur} mo)',
         'btn_ht_annual': '📆 Full year (12 months)',
         'btn_ht_period_chosen': '📅 Entering for contract period',
+        'ask_total_period': '📋 How many *vacation hours* do you have for this period (*{start}–{end}*, {dur} months)?',
         'ask_total': (
             '📋 How many *vacation hours* do you have per *full year* (12 months)?\n'
             '_(Check your employment contract or ask HR — it differs for everyone)_'
@@ -217,6 +219,7 @@ STRINGS = {
         'btn_ht_period': '📅 Erre az időszakra ({start}–{end}, {dur} hó)',
         'btn_ht_annual': '📆 Teljes évre (12 hónap)',
         'btn_ht_period_chosen': '📅 Időszakra adom meg',
+        'ask_total_period': '📋 Hány *szabadságórád* van erre az időszakra (*{start}–{end}*, {dur} hó)?',
         'ask_total': (
             '📋 Hány *szabadságórád* van *teljes évre* (12 hónapra)?\n'
             '_(Ez a munkaszerződésedben szerepel vagy kérdezd meg a HR-t — mindenkinél más)_'

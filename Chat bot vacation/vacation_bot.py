@@ -244,9 +244,16 @@ async def got_hours_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if q.data == "ht_period":
         context.user_data["_period_entry"] = True
         await q.edit_message_text(t(lang, "btn_ht_period_chosen"))
+        start_m  = context.user_data["start_m"]
+        end_m    = context.user_data["end_m"]
+        duration = (end_m - start_m) % 12 + 1
+        months   = MONTHS[lang]
+        prompt = t(lang, "ask_total_period").format(
+            start=months[start_m - 1], end=months[end_m - 1], dur=duration)
     else:
         await q.edit_message_text(t(lang, "btn_ht_annual"))
-    await q.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
+        prompt = t(lang, "ask_total")
+    await q.message.reply_text(prompt, parse_mode="Markdown")
     return TOTAL
 
 
