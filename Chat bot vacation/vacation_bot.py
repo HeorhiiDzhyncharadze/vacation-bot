@@ -405,6 +405,21 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def on_timeout(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(context)
+    context.user_data.pop("_in_calc", None)
+    msg = (update.message
+           or (update.callback_query and update.callback_query.message))
+    if msg:
+        await msg.reply_text(t(lang, "timeout"))
+    return ConversationHandler.END
+
+
+async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(context)
+    await update.message.reply_text(t(lang, "help"), parse_mode="Markdown")
+
+
 async def _on_startup(app: Application):
     await db.init_db()
 
@@ -414,18 +429,21 @@ async def _on_startup(app: Application):
             BotCommand("calc",   "🔢 Розрахувати відпустку"),
             BotCommand("reset",  "🗑️ Скинути дані"),
             BotCommand("cancel", "⛔ Скасувати"),
+            BotCommand("help",   "ℹ️ Довідка"),
         ],
         'en': [
             BotCommand("start",  "🌐 Choose language"),
             BotCommand("calc",   "🔢 Calculate vacation"),
             BotCommand("reset",  "🗑️ Reset data"),
             BotCommand("cancel", "⛔ Cancel"),
+            BotCommand("help",   "ℹ️ Help"),
         ],
         'hu': [
             BotCommand("start",  "🌐 Nyelv választás"),
             BotCommand("calc",   "🔢 Szabadság kalkuláció"),
             BotCommand("reset",  "🗑️ Adatok törlése"),
             BotCommand("cancel", "⛔ Megszakítás"),
+            BotCommand("help",   "ℹ️ Súgó"),
         ],
     }
     for lang_code, commands in cmds.items():
@@ -452,12 +470,18 @@ def main():
             BALANCE_YN:  [CallbackQueryHandler(got_balance_yn, pattern="^bal_")],
             BALANCE_VAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_balance_val)],
             USED:        [MessageHandler(filters.TEXT & ~filters.COMMAND, got_used)],
+            ConversationHandler.TIMEOUT: [
+                MessageHandler(filters.ALL, on_timeout),
+                CallbackQueryHandler(on_timeout),
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
+        conversation_timeout=300,   # 5 min inactivity → auto-cancel
     )
     app.add_handler(CommandHandler("start", start))
     app.add_handler(conv)
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("help", help_cmd))
     print("Bot running. Ctrl+C to stop.")
     app.run_polling()
 

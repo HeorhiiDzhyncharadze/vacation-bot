@@ -78,7 +78,11 @@ def build_report(
     end_m: int,
     lang: str,
     opening_balance_h: float = 0.0,
+    today: datetime.date | None = None,
 ) -> str:
+    if today is None:
+        # Default UTC+2: covers Ukraine (EET/EEST) and Hungary (CET summer) year-round
+        today = (datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=2)).date()
     s = STRINGS[lang]
     months = MONTHS[lang]
     used_h = used_days * SHIFT
@@ -87,7 +91,7 @@ def build_report(
     rem_h = opening_balance_h + rate * duration - used_h  # accrued over period minus used
     rem_d = rem_h / SHIFT
     total_d = total / SHIFT
-    current_month = datetime.date.today().month
+    current_month = today.month
 
     # Build table rows; simultaneously capture current-month available days for headline.
     table_rows = []

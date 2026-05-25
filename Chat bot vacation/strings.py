@@ -83,6 +83,16 @@ STRINGS = {
             '👋 З поверненням! Збережено: *{total}* год, {start}–{end}, баланс: {bal:+.1f} год.\n'
             '🏖️ Скільки *днів* відпустки ти вже взяв?'
         ),
+        'timeout': '⏱️ Сесія завершилась через бездіяльність. Натисни /calc щоб почати знову.',
+        'help': (
+            'ℹ️ *Vacation Calculator Bot*\n\n'
+            'Рахує скільки днів відпустки можна взяти зараз і до кінця контракту.\n\n'
+            '*Команди:*\n'
+            '/calc — розрахувати\n'
+            '/reset — ввести дані заново\n'
+            '/cancel — скасувати\n'
+            '/help — ця довідка'
+        ),
         'reset_done': '🗑️ Дані видалено. Наступний /calc запитає все заново.',
         'reset_none': 'Немає збережених даних.',
         'cancelled': '⛔ Скасовано. Обери мову або /calc щоб почати знову:',
@@ -170,6 +180,16 @@ STRINGS = {
             '👋 Welcome back! Saved: *{total}* h, {start}–{end}, balance: {bal:+.1f} h.\n'
             '🏖️ How many *vacation days* have you already taken?'
         ),
+        'timeout': '⏱️ Session timed out. Press /calc to start again.',
+        'help': (
+            'ℹ️ *Vacation Calculator Bot*\n\n'
+            'Calculates how many vacation days you can take now and by contract end.\n\n'
+            '*Commands:*\n'
+            '/calc — calculate\n'
+            '/reset — re-enter contract data\n'
+            '/cancel — cancel\n'
+            '/help — this help'
+        ),
         'reset_done': '🗑️ Data cleared. The next /calc will ask everything again.',
         'reset_none': 'No saved data.',
         'cancelled': '⛔ Cancelled. Choose a language or /calc to start again:',
@@ -256,6 +276,16 @@ STRINGS = {
         'saved_prompt': (
             '👋 Üdv újra! Mentve: *{total}* óra, {start}–{end}, egyenleg: {bal:+.1f} óra.\n'
             '🏖️ Hány *szabadnapot* vettél már ki?'
+        ),
+        'timeout': '⏱️ A munkamenet lejárt. Nyomd meg a /calc gombot az újrakezdéshez.',
+        'help': (
+            'ℹ️ *Vacation Calculator Bot*\n\n'
+            'Kiszámítja hány szabadnapot vehetsz ki most és a szerződés végéig.\n\n'
+            '*Parancsok:*\n'
+            '/calc — számítás\n'
+            '/reset — adatok újbóli megadása\n'
+            '/cancel — megszakítás\n'
+            '/help — ez a súgó'
         ),
         'reset_done': '🗑️ Adatok törölve. A következő /calc mindent újra kérdez.',
         'reset_none': 'Nincs mentett adat.',
