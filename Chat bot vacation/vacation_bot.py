@@ -424,7 +424,7 @@ async def dbdump(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             d = dict(r)
             lines.append(
                 f"👤 user_id={d['user_id']} lang={d.get('lang','?')}\n"
-                f"   total={d.get('total_hours','?')}h  {d.get('start_month','?')}→{d.get('end_month','?')}\n"
+                f"   total={d.get('total','?')}h  {d.get('start_m','?')}→{d.get('end_m','?')}\n"
                 f"   balance={d.get('opening_balance',0)}h"
             )
         await update.message.reply_text("\n\n".join(lines))
