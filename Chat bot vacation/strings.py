@@ -40,19 +40,25 @@ STRINGS = {
         ),
         'ask_total': (
             '📋 *Скільки годин відпустки* ти маєш за рік?\n'
-            '_(Ця цифра є у твоєму трудовому договорі або запитай у HR. Найчастіше 168)_'
+            '_(Ця цифра в трудовому договорі або у HR — у кожного своя)_'
         ),
-        'ask_start_default': '📅 Відпустковий рік починається *1 Січня*.\nПотрібно змінити?',
+        'ask_start_default': (
+            '📅 *З якого місяця* нараховується твоя відпустка цього року?\n'
+            'Зазвичай — з *Січня*. Якщо не впевнений — залишай Січень.'
+        ),
         'btn_yes': 'Так', 'btn_no': 'Ні',
+        'btn_cs_keep': '✅ З Січня', 'btn_cs_change': '📅 Інший місяць',
+        'ask_end_year_yn': '📅 Твій контракт *до кінця цього року* (до Грудня)?',
+        'btn_ey_yes': '✅ Так, до Грудня', 'btn_ey_no': '📅 Ні, обрати місяць',
         'ask_end': '📅 У якому місяці *закінчується* твій контракт?',
         'ask_used': (
             '🏖️ Скільки *днів відпустки* ти вже взяв цього року?\n'
             '_(Введи 0 якщо ще не брав)_'
         ),
         'ask_balance_yn': (
-            '💼 Чи є в тебе *перенесені години* з попереднього контракту?\n'
-            '_(Наприклад, якщо у тебе лишились невикористані дні або навпаки '
-            'ти взяв більше ніж мав право)_'
+            '💼 Чи є в тебе *залишок із минулого року*?\n'
+            '_(Невикористані дні або взяв більше ніж мав право.\n'
+            'Якщо не знаєш — тисни "Ні")_'
         ),
         'btn_bal_yes': '✅ Так, є',
         'btn_bal_no': '❌ Ні',
@@ -113,18 +119,25 @@ STRINGS = {
         ),
         'ask_total': (
             '📋 How many *vacation hours* do you have per year?\n'
-            '_(This is written in your employment contract or ask HR. Usually 168)_'
+            '_(Check your employment contract or ask HR — it differs for everyone)_'
         ),
-        'ask_start_default': '📅 Vacation year starts *January 1st*.\nDo you need to change this?',
+        'ask_start_default': (
+            '📅 *Which month* does your vacation year start?\n'
+            'Usually *January*. If unsure — keep January.'
+        ),
         'btn_yes': 'Yes', 'btn_no': 'No',
+        'btn_cs_keep': '✅ From January', 'btn_cs_change': '📅 Different month',
+        'ask_end_year_yn': '📅 Does your contract run *until end of this year* (December)?',
+        'btn_ey_yes': '✅ Yes, until December', 'btn_ey_no': '📅 No, choose month',
         'ask_end': '📅 In which month does your contract *end*?',
         'ask_used': (
             '🏖️ How many *vacation days* have you already taken this year?\n'
             '_(Enter 0 if none)_'
         ),
         'ask_balance_yn': (
-            '💼 Do you have *carried-over hours* from a previous contract?\n'
-            '_(For example, if you had unused days left over or took more than you were entitled to)_'
+            '💼 Do you have a *carry-over balance from last year*?\n'
+            '_(Unused days left over, or you took more than allowed.\n'
+            'If unsure — tap "No")_'
         ),
         'btn_bal_yes': '✅ Yes',
         'btn_bal_no': '❌ No',
@@ -185,18 +198,25 @@ STRINGS = {
         ),
         'ask_total': (
             '📋 Hány *szabadságórád* van évente?\n'
-            '_(Ez a munkaszerződésedben van írva, vagy kérdezd meg a HR-t. Általában 168)_'
+            '_(Ez a munkaszerződésedben szerepel vagy kérdezd meg a HR-t — mindenkinél más)_'
         ),
-        'ask_start_default': '📅 A szabadságév *január 1-jén* kezdődik.\nMeg kell változtatni?',
+        'ask_start_default': (
+            '📅 *Melyik hónaptól* gyűlik a szabadságod az idén?\n'
+            'Általában *januártól*. Ha nem tudod — hagyd Januárt.'
+        ),
         'btn_yes': 'Igen', 'btn_no': 'Nem',
+        'btn_cs_keep': '✅ Januártól', 'btn_cs_change': '📅 Más hónap',
+        'ask_end_year_yn': '📅 A szerződésed *az év végéig* tart (December)?',
+        'btn_ey_yes': '✅ Igen, decemberig', 'btn_ey_no': '📅 Nem, hónap választás',
         'ask_end': '📅 Melyik hónapban *ér véget* a szerződésed?',
         'ask_used': (
             '🏖️ Hány *szabadnapot* vettél már ki ebben az évben?\n'
             '_(Írd be 0-t, ha még nem vettél ki)_'
         ),
         'ask_balance_yn': (
-            '💼 Van *átvitt egyenleged* az előző szerződésből?\n'
-            '_(Például ha maradt ki nem vett szabadnapod, vagy többet vettél ki, mint amennyi járt)_'
+            '💼 Van *átvitt egyenleged a tavalyi évből*?\n'
+            '_(Ki nem vett napok, vagy többet vettél ki, mint amennyi járt.\n'
+            'Ha nem tudod — nyomd a "Nem"-et)_'
         ),
         'btn_bal_yes': '✅ Igen',
         'btn_bal_no': '❌ Nem',

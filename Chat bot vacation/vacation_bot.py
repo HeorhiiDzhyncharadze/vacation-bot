@@ -26,7 +26,7 @@ from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
-KNOW_HOURS, TOTAL, AGE, CHILDREN, CHANGE_START, START_M, END_M, BALANCE_YN, BALANCE_VAL, USED = range(10)
+KNOW_HOURS, TOTAL, AGE, CHILDREN, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED = range(11)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -157,8 +157,8 @@ async def got_children(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     # Continue flow: ask start month
     keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(t(lang, "btn_no"), callback_data="cs_no"),
-        InlineKeyboardButton(t(lang, "btn_yes"), callback_data="cs_yes"),
+        InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
+        InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
     ]])
     await update.message.reply_text(
         t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
@@ -174,8 +174,8 @@ async def got_total(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(t(lang, "err_positive"))
         return TOTAL
     keyboard = InlineKeyboardMarkup([[
-        InlineKeyboardButton(t(lang, "btn_no"), callback_data="cs_no"),
-        InlineKeyboardButton(t(lang, "btn_yes"), callback_data="cs_yes"),
+        InlineKeyboardButton(t(lang, "btn_cs_keep"),   callback_data="cs_no"),
+        InlineKeyboardButton(t(lang, "btn_cs_change"), callback_data="cs_yes"),
     ]])
     await update.message.reply_text(
         t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
@@ -190,10 +190,14 @@ async def got_change_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if q.data == "cs_no":
         context.user_data["start_m"] = 1
         await q.edit_message_text(MONTHS[lang][0])
+        end_year_kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(lang, "btn_ey_yes"), callback_data="ey_yes"),
+            InlineKeyboardButton(t(lang, "btn_ey_no"),  callback_data="ey_no"),
+        ]])
         await q.message.reply_text(
-            t(lang, "ask_end"), parse_mode="Markdown", reply_markup=month_keyboard("em_", lang)
+            t(lang, "ask_end_year_yn"), parse_mode="Markdown", reply_markup=end_year_kb
         )
-        return END_M
+        return END_YEAR_YN
     await q.edit_message_text(
         t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=month_keyboard("sm_", lang)
     )
@@ -206,6 +210,33 @@ async def got_start_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     context.user_data["start_m"] = int(q.data.replace("sm_", ""))
     await q.edit_message_text(MONTHS[lang][context.user_data["start_m"] - 1])
+    end_year_kb = InlineKeyboardMarkup([[
+        InlineKeyboardButton(t(lang, "btn_ey_yes"), callback_data="ey_yes"),
+        InlineKeyboardButton(t(lang, "btn_ey_no"),  callback_data="ey_no"),
+    ]])
+    await q.message.reply_text(
+        t(lang, "ask_end_year_yn"), parse_mode="Markdown", reply_markup=end_year_kb
+    )
+    return END_YEAR_YN
+
+
+async def got_end_year_yn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(context)
+    if q.data == "ey_yes":
+        context.user_data["end_m"] = 12
+        await q.edit_message_text(MONTHS[lang][11])  # Грудень / December / December
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(lang, "btn_bal_yes"), callback_data="bal_yes"),
+            InlineKeyboardButton(t(lang, "btn_bal_no"),  callback_data="bal_no"),
+        ]])
+        await q.message.reply_text(
+            t(lang, "ask_balance_yn"), parse_mode="Markdown", reply_markup=keyboard
+        )
+        return BALANCE_YN
+    # ey_no: dismiss buttons, show month picker
+    await q.edit_message_text(t(lang, "ask_end_year_yn"), parse_mode="Markdown")
     await q.message.reply_text(
         t(lang, "ask_end"), parse_mode="Markdown", reply_markup=month_keyboard("em_", lang)
     )
@@ -309,6 +340,7 @@ def main():
             CHILDREN:    [MessageHandler(filters.TEXT & ~filters.COMMAND, got_children)],
             CHANGE_START:[CallbackQueryHandler(got_change_start, pattern="^cs_")],
             START_M:     [CallbackQueryHandler(got_start_month, pattern="^sm_")],
+            END_YEAR_YN: [CallbackQueryHandler(got_end_year_yn, pattern="^ey_")],
             END_M:       [CallbackQueryHandler(got_end_month, pattern="^em_")],
             BALANCE_YN:  [CallbackQueryHandler(got_balance_yn, pattern="^bal_")],
             BALANCE_VAL: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_balance_val)],
