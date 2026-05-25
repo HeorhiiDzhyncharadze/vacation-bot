@@ -104,6 +104,7 @@ STRINGS = {
         'col_month': 'Місяць', 'col_accrued': 'Накоп', 'col_avail': 'Дост.',
         'disclaimer': '_Орієнтовно, не юридична консультація._',
         'calc_again': '🔄 Порахувати ще раз — /calc',
+        'unknown': '❓ Не розумію. Натисни /calc щоб зробити розрахунок або /help для довідки.',
     },
     'en': {
         'choose_lang': '🇺🇦 Оберіть мову / 🇬🇧 Choose language / 🇭🇺 Válasszon nyelvet:',
@@ -201,6 +202,7 @@ STRINGS = {
         'col_month': 'Month', 'col_accrued': 'Accr.', 'col_avail': 'Avail.',
         'disclaimer': '_Approximate, not legal advice._',
         'calc_again': '🔄 Calculate again — /calc',
+        'unknown': "❓ I don't understand that. Press /calc to calculate or /help for info.",
     },
     'hu': {
         'choose_lang': '🇺🇦 Оберіть мову / 🇬🇧 Choose language / 🇭🇺 Válasszon nyelvet:',
@@ -298,5 +300,6 @@ STRINGS = {
         'col_month': 'Hónap', 'col_accrued': 'Felhalm.', 'col_avail': 'Elérh.',
         'disclaimer': '_Tájékoztató jellegű, nem jogi tanácsadás._',
         'calc_again': '🔄 Újra számolni — /calc',
+        'unknown': '❓ Nem értem. Nyomd meg a /calc gombot a számításhoz vagy a /help gombot a súgóhoz.',
     },
 }

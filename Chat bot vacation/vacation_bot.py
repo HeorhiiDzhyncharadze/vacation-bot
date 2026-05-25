@@ -405,6 +405,11 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    lang = get_lang(context)
+    await update.message.reply_text(t(lang, "unknown"))
+
+
 async def on_timeout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(context)
     context.user_data.pop("_in_calc", None)
@@ -482,6 +487,7 @@ def main():
     app.add_handler(conv)
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("help", help_cmd))
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, unknown))
     print("Bot running. Ctrl+C to stop.")
     app.run_polling()
 
