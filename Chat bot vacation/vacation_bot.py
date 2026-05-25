@@ -25,6 +25,7 @@ from calc import (
 from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
+ADMIN_ID = 5417759216
 
 KNOW_HOURS, TOTAL, AGE, CHILDREN, HU_CONFIRM, CHANGE_START, START_M, END_YEAR_YN, END_M, BALANCE_YN, BALANCE_VAL, USED, HOURS_TYPE = range(13)
 
@@ -405,6 +406,32 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def dbdump(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_user.id != ADMIN_ID:
+        return
+    import aiosqlite
+    db_path = os.environ.get("DB_PATH", "users.db")
+    try:
+        async with aiosqlite.connect(db_path) as conn:
+            conn.row_factory = aiosqlite.Row
+            async with conn.execute("SELECT * FROM users") as cursor:
+                rows = await cursor.fetchall()
+        if not rows:
+            await update.message.reply_text("База порожня.")
+            return
+        lines = []
+        for r in rows:
+            d = dict(r)
+            lines.append(
+                f"👤 user_id={d['user_id']} lang={d.get('lang','?')}\n"
+                f"   total={d.get('total_hours','?')}h  {d.get('start_month','?')}→{d.get('end_month','?')}\n"
+                f"   balance={d.get('opening_balance',0)}h"
+            )
+        await update.message.reply_text("\n\n".join(lines))
+    except Exception as e:
+        await update.message.reply_text(f"❌ {e}")
+
+
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     lang = get_lang(context)
     await update.message.reply_text(t(lang, "unknown"))
@@ -487,6 +514,7 @@ def main():
     app.add_handler(conv)
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("help", help_cmd))
+    app.add_handler(CommandHandler("dbdump", dbdump))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, unknown))
     print("Bot running. Ctrl+C to stop.")
     app.run_polling()
