@@ -13,12 +13,20 @@ from telegram.ext import (
 )
 
 import db
-from calc import build_report, parse_finite, parse_nonneg, parse_positive
+from calc import (
+    build_report,
+    parse_finite,
+    parse_nonneg,
+    parse_nonneg_int,
+    parse_positive,
+    vacation_days_hu,
+    vacation_hours_hu,
+)
 from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
-TOTAL, CHANGE_START, START_M, END_M, BALANCE_YN, BALANCE_VAL, USED = range(7)
+KNOW_HOURS, TOTAL, AGE, CHILDREN, CHANGE_START, START_M, END_M, BALANCE_YN, BALANCE_VAL, USED = range(10)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -95,8 +103,67 @@ async def calc(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return USED
 
     lang = get_lang(context)
-    await update.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
-    return TOTAL
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(t(lang, "btn_kh_yes"),  callback_data="kh_yes"),
+        InlineKeyboardButton(t(lang, "btn_kh_calc"), callback_data="kh_calc"),
+    ]])
+    await update.message.reply_text(
+        t(lang, "ask_know_hours"), parse_mode="Markdown", reply_markup=keyboard
+    )
+    return KNOW_HOURS
+
+
+async def got_know_hours(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(context)
+    if q.data == "kh_yes":
+        await q.edit_message_text(t(lang, "btn_kh_yes"))
+        await q.message.reply_text(t(lang, "ask_total"), parse_mode="Markdown")
+        return TOTAL
+    # kh_calc
+    await q.edit_message_text(t(lang, "btn_kh_calc"))
+    await q.message.reply_text(t(lang, "ask_age"), parse_mode="Markdown")
+    return AGE
+
+
+async def got_age(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(context)
+    try:
+        age = parse_nonneg_int(update.message.text)
+    except (ValueError, TypeError):
+        await update.message.reply_text(t(lang, "err_age"))
+        return AGE
+    context.user_data["_age"] = age
+    await update.message.reply_text(t(lang, "ask_children"), parse_mode="Markdown")
+    return CHILDREN
+
+
+async def got_children(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(context)
+    try:
+        children = parse_nonneg_int(update.message.text)
+    except (ValueError, TypeError):
+        await update.message.reply_text(t(lang, "err_children"))
+        return CHILDREN
+    age = context.user_data.get("_age", 0)
+    days = vacation_days_hu(age, children)
+    hours = vacation_hours_hu(age, children)
+    context.user_data["total"] = hours
+    # Show calculation result
+    await update.message.reply_text(
+        t(lang, "calc_hu_result").format(age=age, children=children, days=days, hours=hours),
+        parse_mode="Markdown",
+    )
+    # Continue flow: ask start month
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(t(lang, "btn_no"), callback_data="cs_no"),
+        InlineKeyboardButton(t(lang, "btn_yes"), callback_data="cs_yes"),
+    ]])
+    await update.message.reply_text(
+        t(lang, "ask_start_default"), parse_mode="Markdown", reply_markup=keyboard
+    )
+    return CHANGE_START
 
 
 async def got_total(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -236,7 +303,10 @@ def main():
     conv = ConversationHandler(
         entry_points=[CommandHandler("calc", calc)],
         states={
+            KNOW_HOURS:  [CallbackQueryHandler(got_know_hours, pattern="^kh_")],
             TOTAL:       [MessageHandler(filters.TEXT & ~filters.COMMAND, got_total)],
+            AGE:         [MessageHandler(filters.TEXT & ~filters.COMMAND, got_age)],
+            CHILDREN:    [MessageHandler(filters.TEXT & ~filters.COMMAND, got_children)],
             CHANGE_START:[CallbackQueryHandler(got_change_start, pattern="^cs_")],
             START_M:     [CallbackQueryHandler(got_start_month, pattern="^sm_")],
             END_M:       [CallbackQueryHandler(got_end_month, pattern="^em_")],

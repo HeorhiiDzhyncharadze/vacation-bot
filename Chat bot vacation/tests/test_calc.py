@@ -1,5 +1,5 @@
 import pytest
-from calc import build_report, parse_finite, parse_positive, parse_nonneg, SHIFT
+from calc import build_report, parse_finite, parse_positive, parse_nonneg, parse_nonneg_int, SHIFT, vacation_days_hu, vacation_hours_hu
 
 # Helper: find table rows for a given month name.
 # Table rows start with the month name; headline lines start with ✅ or ⏳.
@@ -257,3 +257,64 @@ def test_report_headline_all_languages():
     for lang, keyword in [('uk', 'Зараз'), ('en', 'Right now'), ('hu', 'Most')]:
         report = build_report(total=120, used_days=0, start_m=1, end_m=12, lang=lang)
         assert keyword in report, f"Headline missing for lang={lang}"
+
+
+# ---------------------------------------------------------------------------
+# vacation_days_hu / vacation_hours_hu — Hungarian Labour Code
+# ---------------------------------------------------------------------------
+
+def test_hu_base_young():
+    assert vacation_days_hu(20, 0) == 20
+
+
+def test_hu_age_25():
+    assert vacation_days_hu(25, 0) == 21
+
+
+def test_hu_age_28():
+    assert vacation_days_hu(28, 0) == 22
+
+
+def test_hu_age_35():
+    assert vacation_days_hu(35, 0) == 25
+
+
+def test_hu_age_45():
+    assert vacation_days_hu(45, 0) == 30
+
+
+def test_hu_one_child():
+    assert vacation_days_hu(25, 1) == 23  # 21 + 2
+
+
+def test_hu_two_children():
+    assert vacation_days_hu(25, 2) == 25  # 21 + 4
+
+
+def test_hu_three_children():
+    assert vacation_days_hu(25, 3) == 28  # 21 + 7
+
+
+def test_hu_age_and_children():
+    assert vacation_days_hu(35, 2) == 29  # 25 + 4
+
+
+def test_hu_hours_base():
+    assert vacation_hours_hu(20, 0) == 240.0  # 20 × 12
+
+
+# ---------------------------------------------------------------------------
+# parse_nonneg_int
+# ---------------------------------------------------------------------------
+
+def test_parse_nonneg_int_ok():
+    assert parse_nonneg_int("35") == 35
+
+
+def test_parse_nonneg_int_zero():
+    assert parse_nonneg_int("0") == 0
+
+
+def test_parse_nonneg_int_neg():
+    with pytest.raises(ValueError):
+        parse_nonneg_int("-1")

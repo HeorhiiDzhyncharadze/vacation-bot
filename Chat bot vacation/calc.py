@@ -27,6 +27,45 @@ def parse_finite(text: str) -> float:
     return val
 
 
+def parse_nonneg_int(text: str) -> int:
+    """Parse a non-negative integer. Used for age and children count."""
+    val = int(text.strip())
+    if val < 0:
+        raise ValueError
+    return val
+
+
+def vacation_days_hu(age: int, num_children: int) -> int:
+    """Vacation days per Hungarian Labour Code (Act I of 2012, §§ 117-118).
+
+    age: full years completed.
+    num_children: children under 16.
+    """
+    if age >= 45:   age_bonus = 10
+    elif age >= 43: age_bonus = 9
+    elif age >= 41: age_bonus = 8
+    elif age >= 39: age_bonus = 7
+    elif age >= 37: age_bonus = 6
+    elif age >= 35: age_bonus = 5
+    elif age >= 33: age_bonus = 4
+    elif age >= 31: age_bonus = 3
+    elif age >= 28: age_bonus = 2
+    elif age >= 25: age_bonus = 1
+    else:           age_bonus = 0
+
+    if num_children >= 3:   child_bonus = 7
+    elif num_children == 2: child_bonus = 4
+    elif num_children == 1: child_bonus = 2
+    else:                   child_bonus = 0
+
+    return 20 + age_bonus + child_bonus
+
+
+def vacation_hours_hu(age: int, num_children: int) -> float:
+    """Total vacation hours for 12-hour shift workers (days × SHIFT)."""
+    return vacation_days_hu(age, num_children) * SHIFT
+
+
 def build_report(
     total: float,
     used_days: float,

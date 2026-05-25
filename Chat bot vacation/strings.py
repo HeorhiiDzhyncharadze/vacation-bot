@@ -19,6 +19,25 @@ STRINGS = {
             '🗑️ /reset — ввести дані заново\n'
             '⛔ /cancel — скасувати будь-коли'
         ),
+        'ask_know_hours': '📋 Ти знаєш скільки *годин відпустки* тобі надано цього року?',
+        'btn_kh_yes': '✅ Так, знаю',
+        'btn_kh_calc': '🔢 Порахувати за законом',
+        'ask_age': (
+            '🎂 Скільки тобі *повних* років?\n'
+            '_(Для розрахунку за законодавством Угорщини)_'
+        ),
+        'err_age': '⚠️ Введи вік — ціле число (напр. *35*). Спробуй ще раз:',
+        'ask_children': (
+            '👶 Скільки у тебе *дітей до 16 років*?\n'
+            '_(Введи 0 якщо немає)_'
+        ),
+        'err_children': '⚠️ Введи 0 або більше (ціле число). Спробуй ще раз:',
+        'calc_hu_result': (
+            '✅ Розраховано за законодавством Угорщини:\n'
+            'Вік: *{age} р.*, дітей до 16: *{children}*\n'
+            '➡️ *{days} дн = {hours:.0f} год*\n'
+            '_(Орієнтовно — уточни у HR)_'
+        ),
         'ask_total': (
             '📋 *Скільки годин відпустки* ти маєш за рік?\n'
             '_(Ця цифра є у твоєму трудовому договорі або запитай у HR. Найчастіше 168)_'
@@ -73,6 +92,25 @@ STRINGS = {
             '🗑️ /reset — enter new contract data\n'
             '⛔ /cancel — cancel at any time'
         ),
+        'ask_know_hours': '📋 Do you know how many *vacation hours* you have this year?',
+        'btn_kh_yes': '✅ Yes, I know',
+        'btn_kh_calc': '🔢 Calculate by law',
+        'ask_age': (
+            '🎂 How old are you (full years)?\n'
+            '_(For calculation under Hungarian labour law)_'
+        ),
+        'err_age': '⚠️ Enter age as a whole number (e.g. *35*). Try again:',
+        'ask_children': (
+            '👶 How many *children under 16* do you have?\n'
+            '_(Enter 0 if none)_'
+        ),
+        'err_children': '⚠️ Enter 0 or more (whole number). Try again:',
+        'calc_hu_result': (
+            '✅ Calculated under Hungarian labour law:\n'
+            'Age: *{age}*, children under 16: *{children}*\n'
+            '➡️ *{days} d = {hours:.0f} h*\n'
+            '_(Approximate — confirm with HR)_'
+        ),
         'ask_total': (
             '📋 How many *vacation hours* do you have per year?\n'
             '_(This is written in your employment contract or ask HR. Usually 168)_'
@@ -125,6 +163,25 @@ STRINGS = {
             '♻️ Első alkalom után a /calc csak azt kérdezi, hány napot vettél ki\n'
             '🗑️ /reset — adatok újbóli megadása\n'
             '⛔ /cancel — megszakítás bármikor'
+        ),
+        'ask_know_hours': '📋 Tudod, hány *szabadságórád* van ebben az évben?',
+        'btn_kh_yes': '✅ Igen, tudom',
+        'btn_kh_calc': '🔢 Törvény alapján számítsd ki',
+        'ask_age': (
+            '🎂 Hány éves vagy (betöltött évek)?\n'
+            '_(Magyar munkatörvény alapján számítjuk ki)_'
+        ),
+        'err_age': '⚠️ Add meg koredat egész számként (pl. *35*). Próbáld újra:',
+        'ask_children': (
+            '👶 Hány *16 éven aluli gyermeked* van?\n'
+            '_(Írj be 0-t, ha nincs)_'
+        ),
+        'err_children': '⚠️ Adj meg 0-t vagy annál nagyobb számot. Próbáld újra:',
+        'calc_hu_result': (
+            '✅ Magyar munkatörvény alapján kiszámítva:\n'
+            'Kor: *{age} év*, 16 alatti gyerek: *{children}*\n'
+            '➡️ *{days} nap = {hours:.0f} óra*\n'
+            '_(Tájékoztató — kérjük ellenőrizd HR-rel)_'
         ),
         'ask_total': (
             '📋 Hány *szabadságórád* van évente?\n'
