@@ -1,0 +1,1 @@
+worker: python vacation_bot.py
