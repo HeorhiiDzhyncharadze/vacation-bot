@@ -14,7 +14,7 @@ from telegram.ext import (
 
 import db
 from calc import build_report, parse_nonneg, parse_positive
-from strings import MONTHS
+from strings import MONTHS, STRINGS
 
 TOKEN = os.environ["BOT_TOKEN"]
 
